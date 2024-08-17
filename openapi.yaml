@@ -1,612 +1,769 @@
 openapi: 3.0.0
 info:
- title: Civitai API
- version: 1.0.0
- description: This is the REST API for Civitai, a platform for sharing AI models and resources.
+  title: Civitai API
+  version: 1.0.0
+  description: This is the REST API for Civitai, a platform for sharing AI models and resources.
 
 servers:
- - url: https://civitai.com/api/v1
+  - url: https://civitai.com/api/v1
 
 paths:
- /creators:
-   get:
-     summary: Get creators
-     parameters:
-       - name: limit
-         in: query
-         description: The number of results to be returned per page (between 0 and 200)
-         schema:
-           type: integer
-       - name: page
-         in: query
-         description: The page from which to start fetching creators
-         schema:
-           type: integer
-       - name: query
-         in: query
-         description: Search query to filter creators by username
-         schema:
-           type: string
-     responses:
-       '200':
-         description: Successful response
-         content:
-           application/json:
-             schema:
-               $ref: '#/components/schemas/CreatorsResponse'
+  /creators:
+    get:
+      summary: Get creators
+      parameters:
+        - name: limit
+          in: query
+          description: The number of results to be returned per page (between 0 and 200)
+          schema:
+            type: integer
+        - name: page
+          in: query
+          description: The page from which to start fetching creators
+          schema:
+            type: integer
+        - name: query
+          in: query
+          description: Search query to filter creators by username
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatorsResponse"
 
- /images:
-   get:
-     summary: Get images
-     parameters:
-       - name: limit
-         in: query
-         description: The number of results to be returned per page (between 0 and 200)
-         schema:
-           type: integer
-       - name: postId
-         in: query
-         description: The ID of a post to get images from
-         schema:
-           type: integer
-       - name: modelId
-         in: query
-         description: The ID of a model to get images from (model gallery)
-         schema:
-           type: integer
-       - name: modelVersionId
-         in: query
-         description: The ID of a model version to get images from (model gallery filtered to version)
-         schema:
-           type: integer
-       - name: username
-         in: query
-         description: Filter to images from a specific user
-         schema:
-           type: string
-       - name: nsfw
-         in: query
-         description: Filter to images that contain mature content flags or not
-         schema:
-           type: string
-           enum: [None, Soft, Mature, X]
-       - name: sort
-         in: query
-         description: The order in which you wish to sort the results
-         schema:
-           type: string
-           enum: [Most Reactions, Most Comments, Newest]
-       - name: period
-         in: query
-         description: The time frame in which the images will be sorted
-         schema:
-           type: string
-           enum: [AllTime, Year, Month, Week, Day]
-       - name: page
-         in: query
-         description: The page from which to start fetching creators
-         schema:
-           type: integer
-     responses:
-       '200':
-         description: Successful response
-         content:
-           application/json:
-             schema:
-               $ref: '#/components/schemas/ImagesResponse'
+  /images:
+    get:
+      summary: Get images
+      parameters:
+        - name: limit
+          in: query
+          description: The number of results to be returned per page (between 0 and 200)
+          schema:
+            type: integer
+        - name: postId
+          in: query
+          description: The ID of a post to get images from
+          schema:
+            type: integer
+        - name: modelId
+          in: query
+          description: The ID of a model to get images from (model gallery)
+          schema:
+            type: integer
+        - name: modelVersionId
+          in: query
+          description: The ID of a model version to get images from (model gallery filtered to version)
+          schema:
+            type: integer
+        - name: username
+          in: query
+          description: Filter to images from a specific user
+          schema:
+            type: string
+        - name: nsfw
+          in: query
+          description: Filter to images that contain mature content flags or not
+          schema:
+            type: string
+            enum: [None, Soft, Mature, X]
+        - name: sort
+          in: query
+          description: The order in which you wish to sort the results
+          schema:
+            type: string
+            enum: [Most Reactions, Most Comments, Newest]
+        - name: period
+          in: query
+          description: The time frame in which the images will be sorted
+          schema:
+            type: string
+            enum: [AllTime, Year, Month, Week, Day]
+        - name: page
+          in: query
+          description: The page from which to start fetching creators
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImagesResponse"
 
- /models:
-   get:
-     summary: Get models
-     parameters:
-       - name: limit
-         in: query
-         description: The number of results to be returned per page (between 1 and 100)
-         schema:
-           type: integer
-       - name: page
-         in: query
-         description: The page from which to start fetching models
-         schema:
-           type: integer
-       - name: query
-         in: query
-         description: Search query to filter models by name
-         schema:
-           type: string
-       - name: tag
-         in: query
-         description: Search query to filter models by tag
-         schema:
-           type: string
-       - name: username
-         in: query
-         description: Search query to filter models by user
-         schema:
-           type: string
-       - name: types
-         in: query
-         description: The type of model you want to filter with
-         schema:
-           type: array
-           items:
-             type: string
-             enum: [Checkpoint, TextualInversion, Hypernetwork, AestheticGradient, LORA, Controlnet, Poses]
-       - name: sort
-         in: query
-         description: The order in which you wish to sort the results
-         schema:
-           type: string
-           enum: [Highest Rated, Most Downloaded, Newest]
-       - name: period
-         in: query
-         description: The time frame in which the models will be sorted
-         schema:
-           type: string
-           enum: [AllTime, Year, Month, Week, Day]
-       - name: favorites
-         in: query
-         description: Filter to favorites of the authenticated user (requires API token or session cookie)
-         schema:
-           type: boolean
-       - name: hidden
-         in: query
-         description: Filter to hidden models of the authenticated user (requires API token or session cookie)
-         schema:
-           type: boolean
-       - name: primaryFileOnly
-         in: query
-         description: Only include the primary file for each model
-         schema:
-           type: boolean
-       - name: allowNoCredit
-         in: query
-         description: Filter to models that require or don't require crediting the creator
-         schema:
-           type: boolean
-       - name: allowDerivatives
-         in: query
-         description: Filter to models that allow or don't allow creating derivatives
-         schema:
-           type: boolean
-       - name: allowDifferentLicenses
-         in: query
-         description: Filter to models that allow or don't allow derivatives to have a different license
-         schema:
-           type: boolean
-       - name: allowCommercialUse
-         in: query
-         description: Filter to models based on their commercial permissions
-         schema:
-           type: string
-           enum: [None, Image, Rent, Sell]
-       - name: nsfw
-         in: query
-         description: If false, will return safer images and hide models that don't have safe images
-         schema:
-           type: boolean
-       - name: supportsGeneration
-         in: query
-         description: If true, will return models that support generation
-         schema:
-           type: boolean
-     responses:
-       '200':
-         description: Successful response
-         content:
-           application/json:
-             schema:
-               $ref: '#/components/schemas/ModelsResponse'
+  /models:
+    get:
+      summary: Get models
+      parameters:
+        - name: limit
+          in: query
+          description: The number of results to be returned per page (between 1 and 100)
+          schema:
+            type: integer
+        - name: page
+          in: query
+          description: The page from which to start fetching models
+          schema:
+            type: integer
+        - name: query
+          in: query
+          description: Search query to filter models by name
+          schema:
+            type: string
+        - name: tag
+          in: query
+          description: Search query to filter models by tag
+          schema:
+            type: string
+        - name: username
+          in: query
+          description: Search query to filter models by user
+          schema:
+            type: string
+        - name: types
+          in: query
+          description: The type of model you want to filter with
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                [
+                  Checkpoint,
+                  TextualInversion,
+                  Hypernetwork,
+                  AestheticGradient,
+                  LORA,
+                  Controlnet,
+                  Poses,
+                ]
+        - name: sort
+          in: query
+          description: The order in which you wish to sort the results
+          schema:
+            type: string
+            enum: [Highest Rated, Most Downloaded, Newest]
+        - name: period
+          in: query
+          description: The time frame in which the models will be sorted
+          schema:
+            type: string
+            enum: [AllTime, Year, Month, Week, Day]
+        - name: favorites
+          in: query
+          description: Filter to favorites of the authenticated user (requires API token or session cookie)
+          schema:
+            type: boolean
+        - name: hidden
+          in: query
+          description: Filter to hidden models of the authenticated user (requires API token or session cookie)
+          schema:
+            type: boolean
+        - name: primaryFileOnly
+          in: query
+          description: Only include the primary file for each model
+          schema:
+            type: boolean
+        - name: allowNoCredit
+          in: query
+          description: Filter to models that require or don't require crediting the creator
+          schema:
+            type: boolean
+        - name: allowDerivatives
+          in: query
+          description: Filter to models that allow or don't allow creating derivatives
+          schema:
+            type: boolean
+        - name: allowDifferentLicenses
+          in: query
+          description: Filter to models that allow or don't allow derivatives to have a different license
+          schema:
+            type: boolean
+        - name: allowCommercialUse
+          in: query
+          description: Filter to models based on their commercial permissions
+          schema:
+            type: string
+            enum: [None, Image, Rent, Sell]
+        - name: nsfw
+          in: query
+          description: If false, will return safer images and hide models that don't have safe images
+          schema:
+            type: boolean
+        - name: supportsGeneration
+          in: query
+          description: If true, will return models that support generation
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelsResponse"
 
- /models/{modelId}:
-   get:
-     summary: Get a model
-     parameters:
-       - name: modelId
-         in: path
-         required: true
-         description: The ID of the model
-         schema:
-           type: integer
-     responses:
-       '200':
-         description: Successful response
-         content:
-           application/json:
-             schema:
-               $ref: '#/components/schemas/Model'
+  /models/{modelId}:
+    get:
+      summary: Get a model
+      parameters:
+        - name: modelId
+          in: path
+          required: true
+          description: The ID of the model
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Model"
 
- /model-versions/{modelVersionId}:
-   get:
-     summary: Get a model version
-     parameters:
-       - name: modelVersionId
-         in: path
-         required: true
-         description: The ID of the model version
-         schema:
-           type: integer
-     responses:
-       '200':
-         description: Successful response
-         content:
-           application/json:
-             schema:
-               $ref: '#/components/schemas/ModelVersion'
+  /model-versions/{modelVersionId}:
+    get:
+      summary: Get a model version
+      parameters:
+        - name: modelVersionId
+          in: path
+          required: true
+          description: The ID of the model version
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelVersion"
 
- /model-versions/by-hash/{hash}:
-   get:
-     summary: Get a model version by hash
-     parameters:
-       - name: hash
-         in: path
-         required: true
-         description: The hash of the model version
-         schema:
-           type: string
-     responses:
-       '200':
-         description: Successful response
-         content:
-           application/json:
-             schema:
-               $ref: '#/components/schemas/ModelVersion'
+  /model-versions/by-hash/{hash}:
+    get:
+      summary: Get a model version by hash
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          description: The hash of the model version
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelVersion"
 
- /tags:
-   get:
-     summary: Get tags
-     parameters:
-       - name: limit
-         in: query
-         description: The number of results to be returned per page (between 1 and 200)
-         schema:
-           type: integer
-       - name: page
-         in: query
-         description: The page from which to start fetching tags
-         schema:
-           type: integer
-       - name: query
-         in: query
-         description: Search query to filter tags by name
-         schema:
-           type: string
-     responses:
-       '200':
-         description: Successful response
-         content:
-           application/json:
-             schema:
-               $ref: '#/components/schemas/TagsResponse'
+  /tags:
+    get:
+      summary: Get tags
+      parameters:
+        - name: limit
+          in: query
+          description: The number of results to be returned per page (between 1 and 200)
+          schema:
+            type: integer
+        - name: page
+          in: query
+          description: The page from which to start fetching tags
+          schema:
+            type: integer
+        - name: query
+          in: query
+          description: Search query to filter tags by name
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagsResponse"
 
 components:
- schemas:
+  schemas:
+    CreatorsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Creator"
+        metadata:
+          $ref: "#/components/schemas/Metadata"
 
-   CreatorsResponse:
-     type: object
-     properties:
-       items:
-         type: array
-         items:
-           $ref: '#/components/schemas/Creator'
-       metadata:
-         $ref: '#/components/schemas/Metadata'
+    Creator:
+      type: object
+      properties:
+        username:
+          type: string
+          description: The username of the creator
+        modelCount:
+          type: integer
+          description: The amount of models linked to this user
+        link:
+          type: string
+          description: Url to get all models from this user
 
-   Creator:
-     type: object
-     properties:
-       username:
-         type: string
-         description: The username of the creator
-       modelCount:
-         type: integer
-         description: The amount of models linked to this user
-       link:
-         type: string
-         description: Url to get all models from this user
+    ImagesResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Image"
+        metadata:
+          $ref: "#/components/schemas/Metadata"
 
-   ImagesResponse:
-     type: object
-     properties:
-       items:
-         type: array
-         items:
-           $ref: '#/components/schemas/Image'
-       metadata:
-         $ref: '#/components/schemas/Metadata'
+    Image:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The id of the image
+        url:
+          type: string
+          description: The url of the image at it's source resolution
+        hash:
+          type: string
+          description: The blurhash of the image
+        width:
+          type: integer
+          description: The width of the image
+        height:
+          type: integer
+          description: The height of the image
+        nsfw:
+          type: boolean
+          description: If the image has any mature content labels
+        nsfwLevel:
+          type: string
+          enum: [None, Soft, Mature, X]
+          description: The NSFW level of the image
+        createdAt:
+          type: string
+          format: date-time
+          description: The date the image was posted
+        postId:
+          type: integer
+          description: The ID of the post the image belongs to
+        stats:
+          $ref: "#/components/schemas/ImageStats"
+        meta:
+          nullable: true
+          $ref: "#/components/schemas/ImageMeta"
+        username:
+          type: string
+          description: The username of the creator
 
-   Image:
-     type: object
-     properties:
-       id:
-         type: integer
-         description: The id of the image
-       url:
-         type: string
-         description: The url of the image at it's source resolution
-       hash:
-         type: string
-         description: The blurhash of the image
-       width:
-         type: integer
-         description: The width of the image
-       height:
-         type: integer
-         description: The height of the image
-       nsfw:
-         type: boolean
-         description: If the image has any mature content labels
-       nsfwLevel:
-         type: string
-         enum: [None, Soft, Mature, X]
-         description: The NSFW level of the image
-       createdAt:
-         type: string
-         format: date-time
-         description: The date the image was posted
-       postId:
-         type: integer
-         description: The ID of the post the image belongs to
-       stats:
-         $ref: '#/components/schemas/ImageStats'
-       meta:
-         type: object
-         description: The generation parameters parsed or input for the image
-       username:
-         type: string
-         description: The username of the creator
+    ImageStats:
+      type: object
+      properties:
+        cryCount:
+          type: integer
+          description: The number of cry reactions
+        laughCount:
+          type: integer
+          description: The number of laugh reactions
+        likeCount:
+          type: integer
+          description: The number of like reactions
+        heartCount:
+          type: integer
+          description: The number of heart reactions
+        commentCount:
+          type: integer
+          description: The number of comment reactions
 
-   ImageStats:
-     type: object
-     properties:
-       cryCount:
-         type: integer
-         description: The number of cry reactions
-       laughCount:
-         type: integer
-         description: The number of laugh reactions
-       likeCount:
-         type: integer
-         description: The number of like reactions
-       heartCount:
-         type: integer
-         description: The number of heart reactions
-       commentCount:
-         type: integer
-         description: The number of comment reactions
+    ImageMeta:
+      type: object
+      properties:
+        Size:
+          type: string
+          nullable: true
+          description: The dimensions of the image (width x height)
+        seed:
+          type: integer
+          nullable: true
+          description: The random seed used for image generation
+        Model:
+          type: string
+          nullable: true
+          description: The name of the AI model used for image generation
+        steps:
+          type: integer
+          nullable: true
+          description: The number of inference steps used in the generation process
+        hashes:
+          type: object
+          nullable: true
+          description: Hash values for the model and any additional components
+        prompt:
+          type: string
+          nullable: true
+          description: The text prompt used to generate the image
+        Version:
+          type: string
+          nullable: true
+          description: The version of the image generation software
+        sampler:
+          type: string
+          nullable: true
+          description: The sampling method used during image generation
+        cfgScale:
+          type: number
+          nullable: true
+          description: The classifier-free guidance scale value
+        clipSkip:
+          type: integer
+          nullable: true
+          description: The number of CLIP model layers to skip
+        resources:
+          type: array
+          nullable: true
+          description: List of resources (models, LoRAs) used in image generation
+        Model hash:
+          type: string
+          nullable: true
+          description: The hash of the main model used
+        Hires steps:
+          type: string
+          nullable: true
+          description: The number of steps used in high-resolution processing
+        Inpaint area:
+          type: string
+          nullable: true
+          description: The area selection method for inpainting
+        Hires upscale:
+          type: string
+          nullable: true
+          description: The upscaling factor for high-resolution processing
+        Hires upscaler:
+          type: string
+          nullable: true
+          description: The name of the upscaler used for high-resolution processing
+        ADetailer model:
+          type: string
+          nullable: true
+          description: The model used by ADetailer for the first pass
+        ADetailer version:
+          type: string
+          nullable: true
+          description: The version of ADetailer used
+        Denoising strength:
+          type: string
+          nullable: true
+          description: The strength of the denoising process
+        ADetailer mask blur:
+          type: string
+          nullable: true
+          description: The blur amount applied to the ADetailer mask
+        ADetailer model 2nd:
+          type: string
+          nullable: true
+          description: The model used by ADetailer for the second pass
+        Masked area padding:
+          type: string
+          nullable: true
+          description: The padding applied to masked areas
+        ADetailer confidence:
+          type: string
+          nullable: true
+          description: The confidence threshold for ADetailer detection
+        ADetailer dilate erode:
+          type: string
+          nullable: true
+          description: The dilation/erosion value for ADetailer mask
+        ADetailer mask blur 2nd:
+          type: string
+          nullable: true
+          description: The blur amount applied to the second ADetailer mask
+        ADetailer confidence 2nd:
+          type: string
+          nullable: true
+          description: The confidence threshold for the second ADetailer pass
+        ADetailer inpaint padding:
+          type: string
+          nullable: true
+          description: The padding used for ADetailer inpainting
+        ADetailer dilate erode 2nd:
+          type: string
+          nullable: true
+          description: The dilation/erosion value for the second ADetailer mask
+        ADetailer denoising strength:
+          type: string
+          nullable: true
+          description: The denoising strength used in ADetailer
+        ADetailer inpaint only masked:
+          type: string
+          nullable: true
+          description: Whether ADetailer inpaints only masked areas
+        ADetailer inpaint padding 2nd:
+          type: string
+          nullable: true
+          description: The padding used for the second ADetailer inpainting pass
+        ADetailer denoising strength 2nd:
+          type: string
+          nullable: true
+          description: The denoising strength used in the second ADetailer pass
+        ADetailer inpaint only masked 2nd:
+          type: string
+          nullable: true
+          description: Whether the second ADetailer pass inpaints only masked areas
+        Mask blur:
+          type: string
+          nullable: true
+          description: The amount of blur applied to the mask
 
-   ModelsResponse:
-     type: object
-     properties:
-       items:
-         type: array
-         items:
-           $ref: '#/components/schemas/Model'
-       metadata:
-         $ref: '#/components/schemas/Metadata'
+    ModelsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Model"
+        metadata:
+          $ref: "#/components/schemas/Metadata"
 
-   Model:
-     type: object
-     properties:
-       id:
-         type: integer
-         description: The identifier for the model
-       name:
-         type: string
-         description: The name of the model
-       description:
-         type: string
-         description: The description of the model (HTML)
-       type:
-         type: string
-         enum: [Checkpoint, TextualInversion, Hypernetwork, AestheticGradient, LORA, Controlnet, Poses]
-         description: The model type
-       nsfw:
-         type: boolean
-         description: Whether the model is NSFW or not
-       tags:
-         type: array
-         items:
-           type: string
-         description: The tags associated with the model
-       mode:
-         type: string
-         enum: [Archived, TakenDown]
-         nullable: true
-         description: The mode in which the model is currently on. If Archived, files field will be empty. If TakenDown, images field will be empty
-       creator:
-         $ref: '#/components/schemas/ModelCreator'
-       stats:
-         $ref: '#/components/schemas/ModelStats'
-       modelVersions:
-         type: array
-         items:
-           $ref: '#/components/schemas/ModelVersion'
+    Model:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The identifier for the model
+        name:
+          type: string
+          description: The name of the model
+        description:
+          type: string
+          description: The description of the model (HTML)
+        type:
+          type: string
+          enum:
+            [
+              Checkpoint,
+              TextualInversion,
+              Hypernetwork,
+              AestheticGradient,
+              LORA,
+              Controlnet,
+              Poses,
+            ]
+          description: The model type
+        nsfw:
+          type: boolean
+          description: Whether the model is NSFW or not
+        tags:
+          type: array
+          items:
+            type: string
+          description: The tags associated with the model
+        mode:
+          type: string
+          enum: [Archived, TakenDown]
+          nullable: true
+          description: The mode in which the model is currently on. If Archived, files field will be empty. If TakenDown, images field will be empty
+        creator:
+          $ref: "#/components/schemas/ModelCreator"
+        stats:
+          $ref: "#/components/schemas/ModelStats"
+        modelVersions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModelVersion"
 
-   ModelCreator:
-     type: object
-     properties:
-       username:
-         type: string
-         description: The name of the creator
-       image:
-         type: string
-         nullable: true
-         description: The url of the creators avatar
+    ModelCreator:
+      type: object
+      properties:
+        username:
+          type: string
+          description: The name of the creator
+        image:
+          type: string
+          nullable: true
+          description: The url of the creators avatar
 
-   ModelStats:
-     type: object
-     properties:
-       downloadCount:
-         type: integer
-         description: The number of downloads the model has
-       favoriteCount:
-         type: integer
-         description: The number of favorites the model has
-       commentCount:
-         type: integer
-         description: The number of comments the model has
-       ratingCount:
-         type: integer
-         description: The number of ratings the model has
-       rating:
-         type: number
-         description: The average rating of the model
+    ModelStats:
+      type: object
+      properties:
+        downloadCount:
+          type: integer
+          description: The number of downloads the model has
+        favoriteCount:
+          type: integer
+          description: The number of favorites the model has
+        commentCount:
+          type: integer
+          description: The number of comments the model has
+        ratingCount:
+          type: integer
+          description: The number of ratings the model has
+        rating:
+          type: number
+          description: The average rating of the model
 
-   ModelVersion:
-     type: object
-     properties:
-       id:
-         type: integer
-         description: The identifier for the model version
-       name:
-         type: string
-         description: The name of the model version
-       description:
-         type: string
-         description: The description of the model version (usually a changelog)
-       createdAt:
-         type: string
-         format: date-time
-         description: The date in which the version was created
-       downloadUrl:
-         type: string
-         description: The download url to get the model file for this specific version
-       trainedWords:
-         type: array
-         items:
-           type: string
-         description: The words used to trigger the model
-       files:
-         type: array
-         items:
-           $ref: '#/components/schemas/ModelFile'
-       stats:
-         $ref: '#/components/schemas/ModelStats'
-       images:
-         type: array
-         items:
-           $ref: '#/components/schemas/ModelImage'
+    ModelVersion:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The identifier for the model version
+        name:
+          type: string
+          description: The name of the model version
+        description:
+          type: string
+          description: The description of the model version (usually a changelog)
+        createdAt:
+          type: string
+          format: date-time
+          description: The date in which the version was created
+        downloadUrl:
+          type: string
+          description: The download url to get the model file for this specific version
+        trainedWords:
+          type: array
+          items:
+            type: string
+          description: The words used to trigger the model
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModelFile"
+        stats:
+          $ref: "#/components/schemas/ModelStats"
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModelImage"
 
-   ModelFile:
-     type: object
-     properties:
-       sizeKb:
-         type: integer
-         description: The size of the model file
-       pickleScanResult:
-         type: string
-         description: Status of the pickle scan ('Pending', 'Success', 'Danger', 'Error')
-       virusScanResult:
-         type: string
-         description: Status of the virus scan ('Pending', 'Success', 'Danger', 'Error')
-       scannedAt:
-         type: string
-         format: date-time
-         nullable: true
-         description: The date in which the file was scanned
-       primary:
-         type: boolean
-         description: If the file is the primary file for the model version
-       metadata:
-         $ref: '#/components/schemas/ModelFileMetadata'
+    ModelFile:
+      type: object
+      properties:
+        sizeKb:
+          type: integer
+          description: The size of the model file
+        pickleScanResult:
+          type: string
+          description: Status of the pickle scan ('Pending', 'Success', 'Danger', 'Error')
+        virusScanResult:
+          type: string
+          description: Status of the virus scan ('Pending', 'Success', 'Danger', 'Error')
+        scannedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: The date in which the file was scanned
+        primary:
+          type: boolean
+          description: If the file is the primary file for the model version
+        metadata:
+          $ref: "#/components/schemas/ModelFileMetadata"
 
-   ModelFileMetadata:
-     type: object
-     properties:
-       fp:
-         type: string
-         enum: [fp16, fp32]
-         description: The specified floating point for the file
-       size:
-         type: string
-         enum: [full, pruned]
-         description: The specified model size for the file
-       format:
-         type: string
-         enum: [SafeTensor, PickleTensor, Other]
-         description: The specified model format for the file
+    ModelFileMetadata:
+      type: object
+      properties:
+        fp:
+          type: string
+          enum: [fp16, fp32]
+          description: The specified floating point for the file
+        size:
+          type: string
+          enum: [full, pruned]
+          description: The specified model size for the file
+        format:
+          type: string
+          enum: [SafeTensor, PickleTensor, Other]
+          description: The specified model format for the file
 
-   ModelImage:
-     type: object
-     properties:
-       id:
-         type: string
-         description: The id for the image
-       url:
-         type: string
-         description: The url for the image
-       nsfw:
-         type: string
-         description: Whether or not the image is NSFW (note - if the model is NSFW, treat all images on the model as NSFW)
-       width:
-         type: integer
-         description: The original width of the image
-       height:
-         type: integer
-         description: The original height of the image
-       hash:
-         type: string
-         description: The blurhash of the image
-       meta:
-         type: object
-         nullable: true
-         description: The generation params of the image
+    ModelImage:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The id for the image
+        url:
+          type: string
+          description: The url for the image
+        nsfw:
+          type: string
+          description: Whether or not the image is NSFW (note - if the model is NSFW, treat all images on the model as NSFW)
+        width:
+          type: integer
+          description: The original width of the image
+        height:
+          type: integer
+          description: The original height of the image
+        hash:
+          type: string
+          description: The blurhash of the image
+        meta:
+          nullable: true
+          $ref: "#/components/schemas/ImageMeta"
+          description: The generation params of the image
 
-   TagsResponse:
-     type: object
-     properties:
-       items:
-         type: array
-         items:
-           $ref: '#/components/schemas/Tag'
-       metadata:
-         $ref: '#/components/schemas/Metadata'
+    TagsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+        metadata:
+          $ref: "#/components/schemas/Metadata"
 
-   Tag:
-     type: object
-     properties:
-       name:
-         type: string
-         description: The name of the tag
-       modelCount:
-         type: integer
-         description: The amount of models linked to this tag
-       link:
-         type: string
-         description: Url to get all models from this tag
+    Tag:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the tag
+        modelCount:
+          type: integer
+          description: The amount of models linked to this tag
+        link:
+          type: string
+          description: Url to get all models from this tag
 
-   Metadata:
-     type: object
-     properties:
-       totalItems:
-         type: integer
-         description: The total number of items available
-       currentPage:
-         type: integer
-         description: The the current page you are at
-       pageSize:
-         type: integer
-         description: The the size of the batch
-       totalPages:
-         type: integer
-         description: The total number of pages
-       nextPage:
-         type: string
-         description: The url to get the next batch of items
-       prevPage:
-         type: string
-         description: The url to get the previous batch of items
-         
- securitySchemes:
-   BearerAuth:
-     type: http
-     scheme: bearer
-   ApiKey:
-     type: apiKey
-     in: query
-     name: token
-     
+    Metadata:
+      type: object
+      properties:
+        totalItems:
+          type: integer
+          description: The total number of items available
+        currentPage:
+          type: integer
+          description: The the current page you are at
+        pageSize:
+          type: integer
+          description: The the size of the batch
+        totalPages:
+          type: integer
+          description: The total number of pages
+        nextPage:
+          type: string
+          description: The url to get the next batch of items
+        prevPage:
+          type: string
+          description: The url to get the previous batch of items
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+    ApiKey:
+      type: apiKey
+      in: query
+      name: token
+
 security:
- - BearerAuth: []
- - ApiKey: []
+  - BearerAuth: []
+  - ApiKey: []
