@@ -68,14 +68,16 @@ paths:
           in: query
           description: Filter to images that contain mature content flags or not
           schema:
-            type: string
-            enum: [None, Soft, Mature, X]
+            oneOf:
+              - type: string
+                enum: [None, Soft, Mature, X]
+              - type: boolean
         - name: sort
           in: query
           description: The order in which you wish to sort the results
           schema:
             type: string
-            enum: [Most Reactions, Most Comments, Newest]
+            enum: [Most Reactions, Most Comments, Most Collected, Newest, Oldest, Random]
         - name: period
           in: query
           description: The time frame in which the images will be sorted
@@ -84,9 +86,50 @@ paths:
             enum: [AllTime, Year, Month, Week, Day]
         - name: page
           in: query
-          description: The page from which to start fetching creators
+          description: The page from which to start fetching images
           schema:
             type: integer
+        - name: cursor
+          in: query
+          description: Opaque cursor for deep pagination; use metadata.nextCursor from previous response
+          schema:
+            type: string
+        - name: imageId
+          in: query
+          description: Single-image lookup by ID
+          schema:
+            type: integer
+        - name: userId
+          in: query
+          description: Filter by uploader user ID
+          schema:
+            type: integer
+        - name: browsingLevel
+          in: query
+          description: Raw browsing-level bitmask; takes precedence over nsfw
+          schema:
+            type: integer
+        - name: tags
+          in: query
+          description: Comma-separated tag IDs to require on each image
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Media type filter
+          schema:
+            type: string
+            enum: [image, video, audio]
+        - name: baseModels
+          in: query
+          description: Comma-separated base model names to filter by
+          schema:
+            type: string
+        - name: withMeta
+          in: query
+          description: If true, include the full meta object (prompt, resources, etc.)
+          schema:
+            type: boolean
       responses:
         "200":
           description: Successful response
@@ -132,27 +175,50 @@ paths:
             items:
               type: string
               enum:
-                [
-                  Checkpoint,
-                  TextualInversion,
-                  Hypernetwork,
-                  AestheticGradient,
-                  LORA,
-                  Controlnet,
-                  Poses,
-                ]
+                [Checkpoint, TextualInversion, Hypernetwork, AestheticGradient, LORA, LoRA, ControlNet, Poses, VAE, Upscaler, MotionModule, Wildcards, Workflows, Other]
         - name: sort
           in: query
           description: The order in which you wish to sort the results
           schema:
             type: string
-            enum: [Highest Rated, Most Downloaded, Newest]
+            enum: [Highest Rated, Most Downloaded, Newest, Most Collected, Most Buzz, Most Comments]
         - name: period
           in: query
           description: The time frame in which the models will be sorted
           schema:
             type: string
             enum: [AllTime, Year, Month, Week, Day]
+        - name: cursor
+          in: query
+          description: Opaque cursor for deep pagination; use metadata.nextCursor from previous response
+          schema:
+            type: string
+        - name: ids
+          in: query
+          description: Comma-separated model IDs to restrict results to
+          schema:
+            type: string
+        - name: baseModels
+          in: query
+          description: Filter by base model (e.g. SDXL 1.0, Flux.1 D)
+          schema:
+            type: string
+        - name: checkpointType
+          in: query
+          description: For checkpoint models only
+          schema:
+            type: string
+            enum: [Standard, Trained, Merge]
+        - name: fromPlatform
+          in: query
+          description: Only return models trained on Civitai
+          schema:
+            type: boolean
+        - name: earlyAccess
+          in: query
+          description: Include early-access versions
+          schema:
+            type: boolean
         - name: favorites
           in: query
           description: Filter to favorites of the authenticated user (requires API token or session cookie)
@@ -260,6 +326,85 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ModelVersion"
+
+  /model-versions/by-hash:
+    post:
+      summary: Bulk lookup model versions by SHA256 hashes
+      description: Same as GET /by-hash/{hash}, but takes up to 100 SHA256 hashes in a single request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                description: SHA256 hash (64 hex characters)
+              maxItems: 100
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ModelVersion"
+        "400":
+          description: Invalid request (non-array, invalid hash length, more than 100 entries)
+
+  /model-versions/by-hash/ids:
+    post:
+      summary: Bulk lookup hash to model version ID
+      description: Resolves SHA256 hashes to model version IDs only. Accepts up to 10000 hashes per call
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                description: SHA256 hash (64 hex characters)
+              maxItems: 10000
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    modelVersionId:
+                      type: integer
+                    hash:
+                      type: string
+
+  /model-versions/mini/{id}:
+    get:
+      summary: Get a minimal model version
+      description: Trimmed-down version for clients that only need download info and generation capability
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the model version
+          schema:
+            type: integer
+        - name: epoch
+          in: query
+          description: For private training-result versions, request a specific epoch
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MinimalModelVersion"
 
   /tags:
     get:
@@ -376,6 +521,9 @@ components:
         likeCount:
           type: integer
           description: The number of like reactions
+        dislikeCount:
+          type: integer
+          description: The number of dislike reactions
         heartCount:
           type: integer
           description: The number of heart reactions
@@ -398,6 +546,26 @@ components:
           type: string
           nullable: true
           description: The name of the AI model used for image generation
+        negativePrompt:
+          type: string
+          nullable: true
+          description: The negative text prompt used to generate the image
+        civitaiResources:
+          type: array
+          nullable: true
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                description: The resource type (checkpoint, lora, etc.)
+              weight:
+                type: number
+                description: The weight of the resource
+              modelVersionId:
+                type: integer
+                description: The Civitai model version ID
+          description: Maps each referenced resource to its Civitai model version ID
         steps:
           type: integer
           nullable: true
@@ -547,20 +715,38 @@ components:
           description: The description of the model (HTML)
         type:
           type: string
-          enum:
-            [
-              Checkpoint,
-              TextualInversion,
-              Hypernetwork,
-              AestheticGradient,
-              LORA,
-              Controlnet,
-              Poses,
-            ]
+          enum: [Checkpoint, TextualInversion, Hypernetwork, AestheticGradient, LORA, LoRA, ControlNet, Poses, VAE, Upscaler, MotionModule, Wildcards, Workflows, Other]
           description: The model type
         nsfw:
           type: boolean
           description: Whether the model is NSFW or not
+        nsfwLevel:
+          type: integer
+          description: The NSFW level bitmask of the model
+        availability:
+          type: string
+          description: The availability status of the model
+        supportsGeneration:
+          type: boolean
+          description: Whether the model supports on-site generation
+        allowNoCredit:
+          type: boolean
+          description: Whether the model allows using without credit
+        allowCommercialUse:
+          type: string
+          description: The commercial use permissions
+        allowDerivatives:
+          type: boolean
+          description: Whether derivatives are allowed
+        allowDifferentLicense:
+          type: boolean
+          description: Whether derivatives can have a different license
+        minor:
+          type: boolean
+          description: Whether the model contains minor content
+        poi:
+          type: boolean
+          description: Whether the model contains person of interest content
         tags:
           type: array
           items:
@@ -570,7 +756,7 @@ components:
           type: string
           enum: [Archived, TakenDown]
           nullable: true
-          description: The mode in which the model is currently on. If Archived, files field will be empty. If TakenDown, images field will be empty
+          description: The mode in which the model is currently on
         creator:
           $ref: "#/components/schemas/ModelCreator"
         stats:
@@ -609,6 +795,15 @@ components:
         rating:
           type: number
           description: The average rating of the model
+        thumbsUpCount:
+          type: integer
+          description: The number of thumbs up
+        thumbsDownCount:
+          type: integer
+          description: The number of thumbs down
+        tippedAmountCount:
+          type: integer
+          description: The total amount of Buzz tipped
 
     ModelVersion:
       type: object
@@ -616,52 +811,135 @@ components:
         id:
           type: integer
           description: The identifier for the model version
+        modelId:
+          type: integer
+          description: The ID of the parent model
         name:
           type: string
           description: The name of the model version
         description:
           type: string
+          nullable: true
           description: The description of the model version (usually a changelog)
+        baseModel:
+          type: string
+          description: The base model this version is trained on
+        baseModelType:
+          type: string
+          description: The type of base model (Standard, etc.)
+        air:
+          type: string
+          description: The canonical AIR identifier for the model version
+        status:
+          type: string
+          description: The publication status (Published, etc.)
+        availability:
+          type: string
+          description: The availability of the version
+        nsfwLevel:
+          type: integer
+          description: The NSFW level bitmask
         createdAt:
           type: string
           format: date-time
           description: The date in which the version was created
-        downloadUrl:
+        updatedAt:
           type: string
-          description: The download url to get the model file for this specific version
+          format: date-time
+          nullable: true
+          description: The date the version was last updated
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: The date the version was published
+        uploadType:
+          type: string
+          description: How the version was uploaded (Created, etc.)
+        usageControl:
+          type: string
+          description: The usage control setting
         trainedWords:
           type: array
           items:
             type: string
           description: The words used to trigger the model
+        earlyAccessConfig:
+          nullable: true
+          description: Early access configuration
+        earlyAccessEndsAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When early access ends
+        trainingStatus:
+          type: string
+          nullable: true
+          description: The training status
+        trainingDetails:
+          nullable: true
+          description: Training details
+        downloadUrl:
+          type: string
+          description: The download url to get the model file for this specific version
         files:
           type: array
           items:
             $ref: "#/components/schemas/ModelFile"
         stats:
-          $ref: "#/components/schemas/ModelStats"
+          $ref: "#/components/schemas/ModelVersionStats"
         images:
           type: array
           items:
             $ref: "#/components/schemas/ModelImage"
+        model:
+          $ref: "#/components/schemas/VersionModelInfo"
 
     ModelFile:
       type: object
       properties:
-        sizeKb:
+        id:
           type: integer
-          description: The size of the model file
+          description: The ID of the file
+        name:
+          type: string
+          description: The filename
+        type:
+          type: string
+          description: The type of file (Model, etc.)
+        sizeKB:
+          type: number
+          description: The size of the model file in KB
         pickleScanResult:
           type: string
-          description: Status of the pickle scan ('Pending', 'Success', 'Danger', 'Error')
+          description: Status of the pickle scan (Pending, Success, Danger, Error)
         virusScanResult:
           type: string
-          description: Status of the virus scan ('Pending', 'Success', 'Danger', 'Error')
+          description: Status of the virus scan (Pending, Success, Danger, Error)
         scannedAt:
           type: string
           format: date-time
           nullable: true
           description: The date in which the file was scanned
+        hashes:
+          type: object
+          properties:
+            AutoV1:
+              type: string
+            AutoV2:
+              type: string
+            AutoV3:
+              type: string
+            SHA256:
+              type: string
+            CRC32:
+              type: string
+            BLAKE3:
+              type: string
+          description: Hash values for the file
+        downloadUrl:
+          type: string
+          description: The download URL for the file
         primary:
           type: boolean
           description: If the file is the primary file for the model version
@@ -688,14 +966,14 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: integer
           description: The id for the image
         url:
           type: string
           description: The url for the image
         nsfw:
-          type: string
-          description: Whether or not the image is NSFW (note - if the model is NSFW, treat all images on the model as NSFW)
+          type: boolean
+          description: Whether or not the image is NSFW
         width:
           type: integer
           description: The original width of the image
@@ -705,6 +983,9 @@ components:
         hash:
           type: string
           description: The blurhash of the image
+        nsfwLevel:
+          type: string
+          description: The NSFW level of the image
         meta:
           nullable: true
           $ref: "#/components/schemas/ImageMeta"
@@ -754,6 +1035,128 @@ components:
         prevPage:
           type: string
           description: The url to get the previous batch of items
+
+    ModelVersionStats:
+      type: object
+      properties:
+        downloadCount:
+          type: integer
+          description: The number of downloads
+        thumbsUpCount:
+          type: integer
+          description: The number of thumbs up
+        thumbsDownCount:
+          type: integer
+          description: The number of thumbs down
+        commentCount:
+          type: integer
+          description: The number of comments
+
+    MinimalModelVersion:
+      type: object
+      properties:
+        air:
+          type: string
+          description: The canonical AIR identifier
+        versionName:
+          type: string
+          description: The version name
+        modelName:
+          type: string
+          description: The parent model name
+        baseModel:
+          type: string
+          description: The base model
+        availability:
+          type: string
+          description: The availability status
+        publishedAt:
+          type: string
+          format: date-time
+          description: When the version was published
+        size:
+          type: number
+          description: The file size in KB
+        fileType:
+          type: string
+          description: The file type
+        fileName:
+          type: string
+          description: The filename
+        hashes:
+          type: object
+          properties:
+            AutoV1:
+              type: string
+            AutoV2:
+              type: string
+            AutoV3:
+              type: string
+            SHA256:
+              type: string
+            CRC32:
+              type: string
+            BLAKE3:
+              type: string
+          description: Hash values for the file
+        downloadUrls:
+          type: array
+          items:
+            type: string
+          description: Download URLs for the file
+        format:
+          type: string
+          description: The file format (SafeTensor, PickleTensor, Other)
+        canGenerate:
+          type: boolean
+          description: Whether the resource can be used in generation workflows
+        isFeatured:
+          type: boolean
+          description: Whether the version is featured
+        requireAuth:
+          type: boolean
+          description: Whether download requires authentication
+        checkPermission:
+          type: boolean
+          description: Whether the resource is gated
+        earlyAccessEndsAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When early access window ends
+        freeTrialLimit:
+          type: integer
+          nullable: true
+          description: Number of free generations during early access
+        additionalResourceCharge:
+          type: boolean
+          description: Whether generating with this resource costs extra Buzz
+        minor:
+          type: boolean
+          description: Whether the version contains minor content
+        sfwOnly:
+          type: boolean
+          description: Whether the version is SFW-only
+
+    VersionModelInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the parent model
+        type:
+          type: string
+          description: The type of the parent model
+        nsfw:
+          type: boolean
+          description: Whether the parent model is NSFW
+        poi:
+          type: boolean
+          description: Whether the parent model contains person of interest content
+        mode:
+          type: string
+          nullable: true
+          description: The moderation mode of the parent model
 
   securitySchemes:
     BearerAuth:
