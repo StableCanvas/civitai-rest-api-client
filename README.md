@@ -1,4 +1,5 @@
 # @stable-canvas/civitai-rest-api-client
+
 civitai rest api client for js
 
 This is a lightweight, type-safe JavaScript/TypeScript library for interacting with the Civitai REST API. It supports both web browsers and Node.js environments.
@@ -31,8 +32,8 @@ import { CivitaiRESTAPIClient } from "@stable-canvas/civitai-rest-api-client";
 
 const client = new CivitaiRESTAPIClient();
 const models = await client.default.getModels({
-    nsfw: false,
-    limit: 5,
+  nsfw: false,
+  limit: 5,
 });
 console.log(models);
 ```
@@ -41,31 +42,14 @@ console.log(models);
 
 ## Supported Endpoints
 
-This library is implemented based on the [Civitai REST API Reference](https://github.com/civitai/civitai/wiki/REST-API-Reference). The following endpoints are supported:
+This library is implemented based on the [Civitai REST API Reference](https://developer.civitai.com/site/reference/). The following endpoints are supported:
 
-### Creators
-
-- `getCreators`
-
-### Images
-
-- `getImages`
-
-### Models
-
-- `getModels`
-- `getModels1`
-
-### Model Versions
-
-- `getModelVersions`
-- `getModelVersionsByHash`
-
-### Tags
-
-- `getTags`
-
-For detailed information on the parameters and response types for each endpoint, please refer to the [Civitai REST API Reference](https://github.com/civitai/civitai/wiki/REST-API-Reference).
+- `/api/v1/creators`
+- `/api/v1/images`
+- `/api/v1/models`
+- `/api/v1/models/{modelId}`
+- `/api/v1/model-versions/...`
+- `/api/v1/tags`
 
 ## Contributing
 
