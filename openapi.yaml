@@ -77,7 +77,15 @@ paths:
           description: The order in which you wish to sort the results
           schema:
             type: string
-            enum: [Most Reactions, Most Comments, Most Collected, Newest, Oldest, Random]
+            enum:
+              [
+                Most Reactions,
+                Most Comments,
+                Most Collected,
+                Newest,
+                Oldest,
+                Random,
+              ]
         - name: period
           in: query
           description: The time frame in which the images will be sorted
@@ -175,13 +183,36 @@ paths:
             items:
               type: string
               enum:
-                [Checkpoint, TextualInversion, Hypernetwork, AestheticGradient, LORA, LoRA, ControlNet, Poses, VAE, Upscaler, MotionModule, Wildcards, Workflows, Other]
+                [
+                  Checkpoint,
+                  TextualInversion,
+                  Hypernetwork,
+                  AestheticGradient,
+                  LORA,
+                  LoRA,
+                  ControlNet,
+                  Poses,
+                  VAE,
+                  Upscaler,
+                  MotionModule,
+                  Wildcards,
+                  Workflows,
+                  Other,
+                ]
         - name: sort
           in: query
           description: The order in which you wish to sort the results
           schema:
             type: string
-            enum: [Highest Rated, Most Downloaded, Newest, Most Collected, Most Buzz, Most Comments]
+            enum:
+              [
+                Highest Rated,
+                Most Downloaded,
+                Newest,
+                Most Collected,
+                Most Buzz,
+                Most Comments,
+              ]
         - name: period
           in: query
           description: The time frame in which the models will be sorted
@@ -715,7 +746,23 @@ components:
           description: The description of the model (HTML)
         type:
           type: string
-          enum: [Checkpoint, TextualInversion, Hypernetwork, AestheticGradient, LORA, LoRA, ControlNet, Poses, VAE, Upscaler, MotionModule, Wildcards, Workflows, Other]
+          enum:
+            [
+              Checkpoint,
+              TextualInversion,
+              Hypernetwork,
+              AestheticGradient,
+              LORA,
+              LoRA,
+              ControlNet,
+              Poses,
+              VAE,
+              Upscaler,
+              MotionModule,
+              Wildcards,
+              Workflows,
+              Other,
+            ]
           description: The model type
         nsfw:
           type: boolean
@@ -1017,24 +1064,21 @@ components:
     Metadata:
       type: object
       properties:
-        totalItems:
-          type: integer
-          description: The total number of items available
         currentPage:
           type: integer
           description: The the current page you are at
-        pageSize:
-          type: integer
-          description: The the size of the batch
-        totalPages:
-          type: integer
-          description: The total number of pages
         nextPage:
           type: string
           description: The url to get the next batch of items
         prevPage:
           type: string
           description: The url to get the previous batch of items
+        pageSize:
+          type: integer
+          description: The number of items per page
+        nextCursor:
+          type: string
+          description: The cursor to get the next batch of items
 
     ModelVersionStats:
       type: object
